@@ -3,7 +3,7 @@ var self;
 
 // HelloView Component Constructor
 function HelloView() {
-	// create object instance, a parasitic subclass of Observable
+	// create object instance
 	self = Ti.UI.createView({
 		height : 'auto',
 		width  : 'auto'
@@ -89,10 +89,6 @@ function sessionDisconnectedHandler(event) {
 	self.remove(self.publisherView);
 	self.remove(self.subscriberLabel);
 	self.remove(self.subscriberView);
-	
-	// alert
-	alert('Session disconnected, Retrying.');
-	self.session.connect(CONFIG.apiKey, CONFIG.token);
 }
 
 function streamCreatedHandler(event) {
