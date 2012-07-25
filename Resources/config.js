@@ -5,6 +5,6 @@ var CONFIG  = {
 	baseUrl   : 'http://opentok.github.com/opentok-titanium-mobile/simulator-test.html'
 }
 
-CONFIG.webUrl = CONFIG.baseUrl + '#apiKey=' + CONFIG.apiKey + '&token=' + CONFIG.token + '&sessionId=' + CONFIG.sessionId;
+CONFIG.webUrl = CONFIG.baseUrl + '#apiKey=' + encodeURIComponent(CONFIG.apiKey) + '&token=' + encodeURIComponent(CONFIG.token) + '&sessionId=' + encodeURIComponent(CONFIG.sessionId);
 
 module.exports = CONFIG
