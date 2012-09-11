@@ -14,6 +14,7 @@ function HelloView() {
 	self.session = self.opentok.createSession({ sessionId : CONFIG.sessionId });
 	self.session.addEventListener("sessionConnected", sessionConnectedHandler);
 	self.session.addEventListener("sessionDisconnected", sessionDisconnectedHandler);
+	self.session.addEventListener("sessionFailed", sessionFailedHandler);
 	self.session.addEventListener("streamCreated", streamCreatedHandler);
 	self.session.connect(CONFIG.apiKey, CONFIG.token);
 	
@@ -106,6 +107,10 @@ function streamCreatedHandler(event) {
 		self.add(self.subscriberLabel);
 		self.add(self.subscriberView);
 	}
+}
+
+function sessionFailedHandler (event) {
+	Ti.API.info(event.error.message);
 }
 
 module.exports = HelloView;
