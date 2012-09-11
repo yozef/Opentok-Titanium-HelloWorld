@@ -12,6 +12,7 @@ function HelloView() {
 	// initialize OpenTok state
 	self.opentok = require('com.tokbox.ti.opentok');
 	self.session = self.opentok.createSession({ sessionId : CONFIG.sessionId });
+	self.session.environment = 'production';
 	self.session.addEventListener("sessionConnected", sessionConnectedHandler);
 	self.session.addEventListener("sessionDisconnected", sessionDisconnectedHandler);
 	self.session.addEventListener("sessionFailed", sessionFailedHandler);
