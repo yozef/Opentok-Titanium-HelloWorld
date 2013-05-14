@@ -3,10 +3,11 @@ var self;
 
 // HelloView Component Constructor
 function HelloView() {
+	
 	// create object instance
 	self = Ti.UI.createView({
-		height : 'auto',
-		width  : 'auto'
+		height : Ti.UI.FILL,
+		width  : Ti.UI.FILL
 	});
 	
 	// initialize OpenTok state
@@ -16,61 +17,53 @@ function HelloView() {
 	self.session.addEventListener("sessionDisconnected", sessionDisconnectedHandler);
 	self.session.addEventListener("sessionFailed", sessionFailedHandler);
 	self.session.addEventListener("streamCreated", streamCreatedHandler);
-	self.session.connect(CONFIG.apiKey, CONFIG.token);
-	
-	// publishing only works from device: let's find out where we are
-	self.onDevice = (Ti.Platform.architecture === 'arm');
 	
 	// create labels
 	self.publisherLabel = Ti.UI.createLabel({
 		top  : 20,
-		text : 'Publisher'
+		height: 21,
+		width: Ti.UI.FILL,
+		text : 'Publisher',
+		textAlign: Ti.UI.TEXT_ALIGNMENT_CENTER
 	});
 	self.subscriberLabel = Ti.UI.createLabel({
-		top  : 20,
-		text : 'Subscriber'
+		top  : 201,
+		height: 21,
+		width: Ti.UI.FILL,
+		text : 'Subscriber',
+		textAlign: Ti.UI.TEXT_ALIGNMENT_CENTER
 	});
 	
-	// create copying view
-	if (!self.onDevice) {
-		var CopyingView = require('ui/simulator/CopyingView');
-		self.copyingView = new CopyingView({
-			width          : 300,
-			height         : 50,
-			top            : 20,
-			initialMessage : 'Publish from your Browser',
-			lastMessage    : 'Open a Browser, Paste (⌘+V) the URL',
-			copyText       : CONFIG.webUrl
-		});
-	}
-	
-	showSpinner();
+	// create connect/disconnect button
+	self.connectButton = Ti.UI.createButton({
+		bottom: 20,
+		title: 'Connect'
+	});
+	self.connectButton.addEventListener('click', toggleConnect);
+	self.add(self.connectButton);
 	
 	return self;
 }
 
 function sessionConnectedHandler(event) {
+	self.connectButton.title = 'Disconnect';
 	dismissSpinner();
 	
 	// Start publishing from my camera
-	if (self.onDevice) {
-		self.publisher = self.session.publish();
-		self.publisherView = self.publisher.createView({
-			width  : 200,
-			height : 150,
-			top    : 20
-		});
-		self.add(self.publisherLabel);
-		self.add(self.publisherView);
-	} else {
-		self.publisherLabel.text = 'Cannot Publish from Simulator';
-		self.publisherLabel.color = 'red';
-		self.add(self.publisherLabel);
-		self.add(self.copyingView);
-	}
+	self.publisher = self.session.publish();
+	self.publisherView = self.publisher.createView({
+		width  : 160,
+		height : 120,
+		top    : 61
+	});
+	self.add(self.publisherLabel);
+	self.add(self.publisherView);
 }
 
 function sessionDisconnectedHandler(event) {
+	self.connectButton.title = 'Connect';
+	dismissSpinner();
+	
 	// Remove publisher, subscriber, and their labels
 	self.remove(self.publisherLabel);
 	self.remove(self.publisherView);
@@ -86,9 +79,9 @@ function streamCreatedHandler(event) {
 		
 		self.subscriber = self.session.subscribe(event.stream);
 		self.subscriberView = self.subscriber.createView({
-			width  : 200,
-			height : 150,
-			top    : 20
+			width  : 160,
+			height : 120,
+			top    : 242
 		});
 		self.add(self.subscriberLabel);
 		self.add(self.subscriberView);
@@ -100,26 +93,44 @@ function sessionFailedHandler (event) {
 	alert(event.error.message);
 }
 
-function showSpinner() {
+function toggleConnect(event) {
+	var spinnerMessage;
+	if (self.session.sessionConnectionStatus === 'disconnected' ||
+		self.session.sessionConnectionStatus === 'failed' ) {
+		self.session.connect(CONFIG.apiKey, CONFIG.token);
+		spinnerMessage = 'Connecting...';
+	} else {
+		self.session.disconnect();
+		spinnerMessage = 'Disconnecting...';
+	}
+	showSpinner(spinnerMessage);
+}
+
+function showSpinner(message) {
 	// show connecting modal
 	self.connectingSpinner = Ti.UI.createActivityIndicator({
 		color: 'white',
-		message: 'Connecting...',
+		message: message,
 		style: Titanium.UI.iPhone.ActivityIndicatorStyle.BIG,
 		height: 200,
 		width: 200,
+		center: {
+			x: '50%',
+			y: '50%'
+		},
 		backgroundColor : 'black',
 		borderRadius: 10
 	});
 	self.add(self.connectingSpinner);
 	self.connectingSpinner.show();
+	self.connectButton.enabled = false;
 }
 
 function dismissSpinner() {
 	// Dismiss spinner
 	self.connectingSpinner.hide();
 	self.remove(self.connectingSpinner);
-	self.layout = 'vertical';
+	self.connectButton.enabled = true;
 }
 
 module.exports = HelloView;
