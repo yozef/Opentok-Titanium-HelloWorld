@@ -34,6 +34,21 @@ function HelloView() {
 		textAlign: Ti.UI.TEXT_ALIGNMENT_CENTER
 	});
 	
+	// create connecting modal
+	self.connectingSpinner = Ti.UI.createActivityIndicator({
+		color: 'white',
+		message: '',
+		style: Titanium.UI.iPhone.ActivityIndicatorStyle.BIG,
+		height: 200,
+		width: 200,
+		center: {
+			x: '50%',
+			y: '50%'
+		},
+		backgroundColor : 'black',
+		borderRadius: 10
+	});
+	
 	// create connect/disconnect button
 	self.connectButton = Ti.UI.createButton({
 		bottom: 20,
@@ -100,30 +115,21 @@ function toggleConnect(event) {
 		self.session.connect(CONFIG.apiKey, CONFIG.token);
 		spinnerMessage = 'Connecting...';
 	} else {
+		Ti.API.info('before disconnect');
 		self.session.disconnect();
+		Ti.API.info('after disconnect');
 		spinnerMessage = 'Disconnecting...';
 	}
 	showSpinner(spinnerMessage);
 }
 
 function showSpinner(message) {
-	// show connecting modal
-	self.connectingSpinner = Ti.UI.createActivityIndicator({
-		color: 'white',
-		message: message,
-		style: Titanium.UI.iPhone.ActivityIndicatorStyle.BIG,
-		height: 200,
-		width: 200,
-		center: {
-			x: '50%',
-			y: '50%'
-		},
-		backgroundColor : 'black',
-		borderRadius: 10
-	});
+	Ti.API.info('before show spinner');
+	self.connectingSpinner.message = message;
 	self.add(self.connectingSpinner);
 	self.connectingSpinner.show();
 	self.connectButton.enabled = false;
+	Ti.API.info('after show spinner');
 }
 
 function dismissSpinner() {
