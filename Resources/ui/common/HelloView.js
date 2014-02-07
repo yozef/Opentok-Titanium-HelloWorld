@@ -12,7 +12,6 @@ function HelloView() {
 	// initialize OpenTok state
 	self.opentok = require('com.tokbox.ti.opentok');
 	self.session = self.opentok.createSession({ sessionId : CONFIG.sessionId });
-	self.session.environment = 'production';
 	self.session.addEventListener("sessionConnected", sessionConnectedHandler);
 	self.session.addEventListener("sessionDisconnected", sessionDisconnectedHandler);
 	self.session.addEventListener("sessionFailed", sessionFailedHandler);
@@ -45,27 +44,13 @@ function HelloView() {
 		});
 	}
 	
-	// show connecting modal
-	self.connectingSpinner = Ti.UI.createActivityIndicator({
-		color: 'white',
-		message: 'Connecting...',
-		style: Titanium.UI.iPhone.ActivityIndicatorStyle.BIG,
-		height: 200,
-		width: 200,
-		backgroundColor : 'black',
-		borderRadius: 10
-	});
-	self.add(self.connectingSpinner);
-	self.connectingSpinner.show();
+	showSpinner();
 	
 	return self;
 }
 
 function sessionConnectedHandler(event) {
-	// Dismiss spinner
-	self.connectingSpinner.hide();
-	self.remove(self.connectingSpinner);
-	self.layout = 'vertical';
+	dismissSpinner();
 	
 	// Start publishing from my camera
 	if (self.onDevice) {
@@ -111,7 +96,30 @@ function streamCreatedHandler(event) {
 }
 
 function sessionFailedHandler (event) {
-	Ti.API.info(event.error.message);
+	dismissSpinner();
+	alert(event.error.message);
+}
+
+function showSpinner() {
+	// show connecting modal
+	self.connectingSpinner = Ti.UI.createActivityIndicator({
+		color: 'white',
+		message: 'Connecting...',
+		style: Titanium.UI.iPhone.ActivityIndicatorStyle.BIG,
+		height: 200,
+		width: 200,
+		backgroundColor : 'black',
+		borderRadius: 10
+	});
+	self.add(self.connectingSpinner);
+	self.connectingSpinner.show();
+}
+
+function dismissSpinner() {
+	// Dismiss spinner
+	self.connectingSpinner.hide();
+	self.remove(self.connectingSpinner);
+	self.layout = 'vertical';
 }
 
 module.exports = HelloView;
