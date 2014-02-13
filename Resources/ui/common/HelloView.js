@@ -54,14 +54,18 @@ function sessionConnectedHandler(event) {
 	
 	// Start publishing from my camera
 	if (self.onDevice) {
-		self.publisher = self.session.publish();
-		self.publisherView = self.publisher.createView({
-			width  : 200,
-			height : 150,
-			top    : 20
+		Titanium.Media.requestAuthorization(function(response) {
+			if (response.success) {
+				self.publisher = self.session.publish();
+				self.publisherView = self.publisher.createView({
+					width  : 200,
+					height : 150,
+					top    : 20
+				});
+				self.add(self.publisherLabel);
+				self.add(self.publisherView);
+			}
 		});
-		self.add(self.publisherLabel);
-		self.add(self.publisherView);
 	} else {
 		self.publisherLabel.text = 'Cannot Publish from Simulator';
 		self.publisherLabel.color = 'red';
