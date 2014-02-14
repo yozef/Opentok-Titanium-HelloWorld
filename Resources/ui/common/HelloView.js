@@ -46,18 +46,14 @@ function sessionConnectedHandler(event) {
 	dismissSpinner();
 	
 	// Start publishing from my camera
-	Titanium.Media.requestAuthorization(function(response) {
-		if (response.success) {
-			publisher = session.publish();
-			publisherView = publisher.createView({
-				width  : 200,
-				height : 150,
-				top    : 20
-			});
-			self.add(publisherLabel);
-			self.add(publisherView);
-		}
+	publisher = session.publish();
+	publisherView = publisher.createView({
+		width  : 200,
+		height : 150,
+		top    : 20
 	});
+	self.add(publisherLabel);
+	self.add(publisherView);
 }
 
 function sessionDisconnectedHandler(event) {
