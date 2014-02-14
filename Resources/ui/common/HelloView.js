@@ -1,48 +1,41 @@
 var CONFIG = require('config');
-var self;
+
+var self, // the top level view
+	session,
+	publisher,
+	publisherView,
+	publisherLabel,
+	subscriber,
+	subscriberView,
+	subscriberLabel,
+	connectingSpinner;
 
 // HelloView Component Constructor
 function HelloView() {
 	// create object instance
-	self = Ti.UI.createView({
+	self = Titanium.UI.createView({
 		height : 'auto',
 		width  : 'auto'
 	});
 	
 	// initialize OpenTok state
-	self.opentok = require('com.tokbox.ti.opentok');
-	self.session = self.opentok.createSession({ sessionId : CONFIG.sessionId });
-	self.session.addEventListener("sessionConnected", sessionConnectedHandler);
-	self.session.addEventListener("sessionDisconnected", sessionDisconnectedHandler);
-	self.session.addEventListener("sessionFailed", sessionFailedHandler);
-	self.session.addEventListener("streamCreated", streamCreatedHandler);
-	self.session.connect(CONFIG.apiKey, CONFIG.token);
-	
-	// publishing only works from device: let's find out where we are
-	self.onDevice = (Ti.Platform.architecture === 'arm');
+	var opentok = require('com.tokbox.ti.opentok');
+	session = opentok.createSession({ sessionId : CONFIG.sessionId });
+	session.addEventListener("sessionConnected", sessionConnectedHandler);
+	session.addEventListener("sessionDisconnected", sessionDisconnectedHandler);
+	session.addEventListener("sessionFailed", sessionFailedHandler);
+	session.addEventListener("streamCreated", streamCreatedHandler);
+	session.connect(CONFIG.apiKey, CONFIG.token);
 	
 	// create labels
-	self.publisherLabel = Ti.UI.createLabel({
+	publisherLabel = Titanium.UI.createLabel({
 		top  : 20,
 		text : 'Publisher'
 	});
-	self.subscriberLabel = Ti.UI.createLabel({
+	subscriberLabel = Titanium.UI.createLabel({
 		top  : 20,
 		text : 'Subscriber'
 	});
-	
-	// create copying view
-	if (!self.onDevice) {
-		var CopyingView = require('ui/simulator/CopyingView');
-		self.copyingView = new CopyingView({
-			width          : 300,
-			height         : 50,
-			top            : 20,
-			initialMessage : 'Publish from your Browser',
-			lastMessage    : 'Open a Browser, Paste (⌘+V) the URL',
-			copyText       : CONFIG.webUrl
-		});
-	}
 	
 	showSpinner();
 	
@@ -53,49 +46,40 @@ function sessionConnectedHandler(event) {
 	dismissSpinner();
 	
 	// Start publishing from my camera
-	if (self.onDevice) {
-		Titanium.Media.requestAuthorization(function(response) {
-			if (response.success) {
-				self.publisher = self.session.publish();
-				self.publisherView = self.publisher.createView({
-					width  : 200,
-					height : 150,
-					top    : 20
-				});
-				self.add(self.publisherLabel);
-				self.add(self.publisherView);
-			}
-		});
-	} else {
-		self.publisherLabel.text = 'Cannot Publish from Simulator';
-		self.publisherLabel.color = 'red';
-		self.add(self.publisherLabel);
-		self.add(self.copyingView);
-	}
+	Titanium.Media.requestAuthorization(function(response) {
+		if (response.success) {
+			publisher = session.publish();
+			publisherView = publisher.createView({
+				width  : 200,
+				height : 150,
+				top    : 20
+			});
+			self.add(publisherLabel);
+			self.add(publisherView);
+		}
+	});
 }
 
 function sessionDisconnectedHandler(event) {
 	// Remove publisher, subscriber, and their labels
-	self.remove(self.publisherLabel);
-	self.remove(self.publisherView);
-	self.remove(self.subscriberLabel);
-	self.remove(self.subscriberView);
+	self.remove(publisherLabel);
+	self.remove(publisherView);
+	self.remove(subscriberLabel);
+	self.remove(subscriberView);
 }
 
 function streamCreatedHandler(event) {
-	// Subscribe to first stream if I am not on a device;
-	// Subscribe to only my own stream if I am.
-	if ( (!self.onDevice && !self.subscriber ) || 
-		 (event.stream.connection.connectionId === self.session.connection.connectionId)) {
-		
-		self.subscriber = self.session.subscribe(event.stream);
-		self.subscriberView = self.subscriber.createView({
+	// Subscribe to first stream if I am not on a device
+	if ( !subscriber ) {
+		Titanium.API.debug("attempting to subscribe to stream " + event.stream.streamId);
+		subscriber = session.subscribe(event.stream);
+		subscriberView = subscriber.createView({
 			width  : 200,
 			height : 150,
 			top    : 20
 		});
-		self.add(self.subscriberLabel);
-		self.add(self.subscriberView);
+		self.add(subscriberLabel);
+		self.add(subscriberView);
 	}
 }
 
@@ -106,7 +90,7 @@ function sessionFailedHandler (event) {
 
 function showSpinner() {
 	// show connecting modal
-	self.connectingSpinner = Ti.UI.createActivityIndicator({
+	connectingSpinner = Titanium.UI.createActivityIndicator({
 		color: 'white',
 		message: 'Connecting...',
 		style: Titanium.UI.iPhone.ActivityIndicatorStyle.BIG,
@@ -115,14 +99,14 @@ function showSpinner() {
 		backgroundColor : 'black',
 		borderRadius: 10
 	});
-	self.add(self.connectingSpinner);
-	self.connectingSpinner.show();
+	self.add(connectingSpinner);
+	connectingSpinner.show();
 }
 
 function dismissSpinner() {
 	// Dismiss spinner
-	self.connectingSpinner.hide();
-	self.remove(self.connectingSpinner);
+	connectingSpinner.hide();
+	self.remove(connectingSpinner);
 	self.layout = 'vertical';
 }
 
