@@ -42,6 +42,6 @@
         </plist>
     </ios>
     <modules>
-        <module platform="iphone" version="0.3.0-alpha">com.tokbox.ti.opentok</module>
+        <module platform="iphone" version="0.3.0-alpha-2">com.tokbox.ti.opentok</module>
     </modules>
 </ti:app>
